@@ -37,7 +37,14 @@ export const DataForm = ({ integrationType, credentials }) => {
 // A string representation for each object in loadedData
 const dataString =
   loadedData && loadedData.length > 0
-    ? loadedData.map((item) => `Name: ${item.name || ''}\nEmail: ${item.email || ''}`).join('\n------------------------------------------------------\n')
+    ? loadedData
+        .map((item) => {
+          const idString = item.id && item.id !== null ? `Id: ${item.id}\n` : '';
+          const nameString = `Name: ${item.name || ''}\n`;
+          const emailString = item.email && item.email !== null ? `Email: ${item.email}\n` : ''; 
+          return idString + nameString + emailString;
+        })
+        .join('\n------------------------------------------------------\n')
     : '';
 
     return (

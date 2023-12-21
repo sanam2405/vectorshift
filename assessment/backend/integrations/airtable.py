@@ -124,8 +124,6 @@ def create_integration_item_metadata_object(
     response_json: dict, item_type: str, parent_id=None, parent_name=None
 ) -> IntegrationItem:
     parent_id = None if parent_id is None else parent_id + '_Base'
-    # print(response_json.get('id'))      # logging table id
-    # print(response_json.get('name'))    # logging table name
     integration_item_metadata = IntegrationItem(
         id=response_json.get('id', None) + '_' + item_type,
         name=response_json.get('name', None),
@@ -175,9 +173,7 @@ async def get_items_airtable(credentials) -> list[IntegrationItem]:
             headers={'Authorization': f'Bearer {credentials.get("access_token")}'},
         )
         if tables_response.status_code == 200:
-            # print("Tables accessed!")       # Tables can be accessed!
             tables_response = tables_response.json()
-            # print(tables_response)          # logging table_response
             for table in tables_response['tables']:
                 list_of_integration_item_metadata.append(
                     create_integration_item_metadata_object(

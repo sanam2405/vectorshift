@@ -101,8 +101,6 @@ async def get_hubspot_credentials(user_id, org_id):
     credentials = json.loads(credentials)
     await delete_key_redis(f'hubspot_credentials:{org_id}:{user_id}')
 
-    # print("Access TOKEN : ")
-    # print(credentials.get('access_token'))
 
     return credentials
 
@@ -133,8 +131,6 @@ async def fetch_items(
 
         for result in results["results"]:
             properties = result.get("properties", {})
-            # for key, value in properties.items():
-            #     print(f"{key} : {value}")
             aggregated_response.append(properties)
 
     else:
@@ -147,12 +143,9 @@ async def get_items_hubspot(credentials):
     url = 'https://api.hubapi.com/crm/v3/objects/contacts'
     list_of_integration_item_metadata = []
     list_of_responses = []
-    # print("Access TOKEN : ")
-    # print(credentials.get('access_token'))
+
     await fetch_items(credentials.get('access_token'), url, list_of_responses)
 
-    # print("List of Responses:")
-    # print(list_of_responses)
 
     for response in list_of_responses:
         list_of_integration_item_metadata.append(
