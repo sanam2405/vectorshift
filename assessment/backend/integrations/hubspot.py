@@ -101,14 +101,19 @@ async def get_hubspot_credentials(user_id, org_id):
     credentials = json.loads(credentials)
     await delete_key_redis(f'hubspot_credentials:{org_id}:{user_id}')
 
-    print("Access TOKEN : ")
-    print(credentials.get('access_token'))
+    # print("Access TOKEN : ")
+    # print(credentials.get('access_token'))
 
     return credentials
 
-async def create_integration_item_metadata_object(response_json):
-    # TODO
-    pass
+async def create_integration_item_metadata_object(response_json: dict) -> IntegrationItem:
+    integration_item_metadata = IntegrationItem(
+        id=response_json.get('id', None),
+        name=response_json.get('firstname', None) + " " + response_json.get('lastname', None),
+        email=response_json.get('email', None)
+    )
+
+    return integration_item_metadata
 
 
 async def fetch_items(
@@ -123,18 +128,15 @@ async def fetch_items(
         response = await client.get(url, headers=headers, params=params)
 
     if response.status_code == 200:
-        # print("HubSpot contact api")
-        # print(response.json())
-        results = response.json().get('bases', {})
-        offset = response.json().get('offset', None)
+        
+        results = response.json()
 
-        for item in results:
-            aggregated_response.append(item)
+        for result in results["results"]:
+            properties = result.get("properties", {})
+            # for key, value in properties.items():
+            #     print(f"{key} : {value}")
+            aggregated_response.append(properties)
 
-        if offset is not None:
-            await fetch_items(access_token, url, aggregated_response, offset)
-        else:
-            return
     else:
         print(f"Error: {response.status_code}, {response.text}")
 
@@ -145,10 +147,19 @@ async def get_items_hubspot(credentials):
     url = 'https://api.hubapi.com/crm/v3/objects/contacts'
     list_of_integration_item_metadata = []
     list_of_responses = []
-    print("Access TOKEN : ")
-    print(credentials.get('access_token'))
+    # print("Access TOKEN : ")
+    # print(credentials.get('access_token'))
     await fetch_items(credentials.get('access_token'), url, list_of_responses)
 
+    # print("List of Responses:")
+    # print(list_of_responses)
+
+    for response in list_of_responses:
+        list_of_integration_item_metadata.append(
+            await create_integration_item_metadata_object(response)
+        )
+
+    print(f'list_of_integration_item_metadata: {list_of_integration_item_metadata}')
     return list_of_integration_item_metadata
 
 
