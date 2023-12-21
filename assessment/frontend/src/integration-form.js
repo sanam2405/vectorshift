@@ -49,7 +49,10 @@ export const IntegrationForm = () => {
         </Box>
         }
         {integrationParams?.credentials && 
-        <Box sx={{mt: 2}}>
+        <Box sx={{
+            mt: 2,
+            width: '100%',
+            }}>
             <DataForm integrationType={integrationParams?.type} credentials={integrationParams?.credentials} />
         </Box>
         }

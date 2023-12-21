@@ -33,3 +33,23 @@ class IntegrationItem:
         self.delta = delta
         self.drive_id = drive_id
         self.visibility = visibility
+
+    def __repr__(self):
+        return (
+            f"IntegrationItem("
+            f"id={self.id}, "
+            f"type={self.type}, "
+            f"directory={self.directory}, "
+            f"parent_path_or_name={self.parent_path_or_name}, "
+            f"parent_id={self.parent_id}, "
+            f"name={self.name}, "
+            f"creation_time={self.creation_time}, "
+            f"last_modified_time={self.last_modified_time}, "
+            f"url={self.url}, "
+            f"children={self.children}, "
+            f"mime_type={self.mime_type}, "
+            f"delta={self.delta}, "
+            f"drive_id={self.drive_id}, "
+            f"visibility={self.visibility})"
+            f"\n------------------------------------------------------\n"
+        )

@@ -15,10 +15,10 @@ from integrations.integration_item import IntegrationItem
 
 from redis_client import add_key_value_redis, get_value_redis, delete_key_redis
 
-# CLIENT_ID = 'XXX'
-# CLIENT_SECRET = 'XXX'
-CLIENT_ID = '329147ef-ac8b-4863-bced-77b7b195258f'
-CLIENT_SECRET = 'e59aec7edddef2edf4388ef611b151ab5fc85c61f828df909c147085e8ffb4f1'
+CLIENT_ID = 'effc4f06-3407-4bac-bfbf-9b59dfacdb6c'
+CLIENT_SECRET = 'ce409f9a5df5b7b494609aadb9964e7580b55c951e28e32cb3e37d776cac15f1'
+# CLIENT_ID = '329147ef-ac8b-4863-bced-77b7b195258f'
+# CLIENT_SECRET = 'e59aec7edddef2edf4388ef611b151ab5fc85c61f828df909c147085e8ffb4f1'
 REDIRECT_URI = 'http://localhost:8000/integrations/airtable/oauth2callback'
 authorization_url = f'https://airtable.com/oauth2/v1/authorize?client_id={CLIENT_ID}&response_type=code&owner=user&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fintegrations%2Fairtable%2Foauth2callback'
 
@@ -105,10 +105,27 @@ async def get_airtable_credentials(user_id, org_id):
 
     return credentials
 
+# The previous code had an error, the response_json is a dict and not a str
+# def create_integration_item_metadata_object(
+#     response_json: str, item_type: str, parent_id=None, parent_name=None
+# ) -> IntegrationItem:
+#     parent_id = None if parent_id is None else parent_id + '_Base'
+#     integration_item_metadata = IntegrationItem(
+#         id=response_json.get('id', None) + '_' + item_type,
+#         name=response_json.get('name', None),
+#         type=item_type,
+#         parent_id=parent_id,
+#         parent_path_or_name=parent_name,
+#     )
+
+#     return integration_item_metadata
+
 def create_integration_item_metadata_object(
-    response_json: str, item_type: str, parent_id=None, parent_name=None
+    response_json: dict, item_type: str, parent_id=None, parent_name=None
 ) -> IntegrationItem:
     parent_id = None if parent_id is None else parent_id + '_Base'
+    # print(response_json.get('id'))      # logging table id
+    # print(response_json.get('name'))    # logging table name
     integration_item_metadata = IntegrationItem(
         id=response_json.get('id', None) + '_' + item_type,
         name=response_json.get('name', None),
@@ -118,6 +135,7 @@ def create_integration_item_metadata_object(
     )
 
     return integration_item_metadata
+
 
 
 def fetch_items(
@@ -157,7 +175,9 @@ async def get_items_airtable(credentials) -> list[IntegrationItem]:
             headers={'Authorization': f'Bearer {credentials.get("access_token")}'},
         )
         if tables_response.status_code == 200:
+            # print("Tables accessed!")       # Tables can be accessed!
             tables_response = tables_response.json()
+            # print(tables_response)          # logging table_response
             for table in tables_response['tables']:
                 list_of_integration_item_metadata.append(
                     create_integration_item_metadata_object(
