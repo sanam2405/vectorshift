@@ -19,7 +19,7 @@ CLIENT_SECRET = 'd8a7c939-c249-4921-86c9-8d6b70530610'
 encoded_client_id_secret = base64.b64encode(f'{CLIENT_ID}:{CLIENT_SECRET}'.encode()).decode()
 
 REDIRECT_URI = 'http://localhost:8000/integrations/hubspot/oauth2callback'
-authorization_url = f'https://app.hubspot.com/oauth/authorize?client_id={CLIENT_ID}&redirect_uri=http://localhost:8000/integrations/hubspot/oauth2callback&scope=crm.schemas.contacts.read%20crm.schemas.contacts.write'
+authorization_url = f'https://app.hubspot.com/oauth/authorize?client_id={CLIENT_ID}&redirect_uri=http://localhost:8000/integrations/hubspot/oauth2callback&scope=tickets%20e-commerce%20crm.objects.contacts.read%20crm.objects.contacts.write%20crm.objects.custom.read%20crm.objects.custom.write%20crm.objects.companies.write%20media_bridge.read%20crm.objects.companies.read%20crm.objects.deals.read%20crm.objects.deals.write%20crm.objects.quotes.write%20crm.objects.quotes.read%20crm.objects.line_items.read%20crm.objects.line_items.write%20crm.objects.goals.read'
 
 async def authorize_hubspot(user_id, org_id):
 
@@ -101,12 +101,57 @@ async def get_hubspot_credentials(user_id, org_id):
     credentials = json.loads(credentials)
     await delete_key_redis(f'hubspot_credentials:{org_id}:{user_id}')
 
+    print("Access TOKEN : ")
+    print(credentials.get('access_token'))
+
     return credentials
 
 async def create_integration_item_metadata_object(response_json):
     # TODO
     pass
 
+
+async def fetch_items(
+    access_token: str, url: str, aggregated_response: list, offset=None
+) -> dict:
+    """Fetching the list of contacts"""
+    
+    params = {'offset': offset} if offset is not None else {}
+    headers = {'Authorization': f'Bearer {access_token}'}
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers, params=params)
+
+    if response.status_code == 200:
+        # print("HubSpot contact api")
+        # print(response.json())
+        results = response.json().get('bases', {})
+        offset = response.json().get('offset', None)
+
+        for item in results:
+            aggregated_response.append(item)
+
+        if offset is not None:
+            await fetch_items(access_token, url, aggregated_response, offset)
+        else:
+            return
+    else:
+        print(f"Error: {response.status_code}, {response.text}")
+
+
 async def get_items_hubspot(credentials):
-    # TODO
-    pass
+    
+    credentials = json.loads(credentials)
+    url = 'https://api.hubapi.com/crm/v3/objects/contacts'
+    list_of_integration_item_metadata = []
+    list_of_responses = []
+    print("Access TOKEN : ")
+    print(credentials.get('access_token'))
+    await fetch_items(credentials.get('access_token'), url, list_of_responses)
+
+    return list_of_integration_item_metadata
+
+
+
+
+    
