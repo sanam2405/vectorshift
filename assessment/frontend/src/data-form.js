@@ -5,6 +5,18 @@ import {
     Button,
 } from '@mui/material';
 import axios from 'axios';
+import { z } from 'zod';
+
+const emailSchema = z.string().email();
+
+const validateEmail = (email) => {
+    try {
+        emailSchema.parse(email);
+        return true;
+    } catch (error) {
+        return false;
+    }
+};
 
 const endpointMapping = {
     'Notion': 'notion',
@@ -14,8 +26,8 @@ const endpointMapping = {
 
 export const DataForm = ({ integrationType, credentials }) => {
     const [loadedData, setLoadedData] = useState(null);
+    const [currentQueryUserEmail, setCurrentQueryUserEmail] = useState(null);
     const endpoint = endpointMapping[integrationType];
-
     const handleLoad = async () => {
         try {
             const formData = new FormData();
@@ -30,22 +42,45 @@ export const DataForm = ({ integrationType, credentials }) => {
     };
 
     useEffect(() => {
-    handleLoad();
-}, []); // Run once on component mount
+        handleLoad();
+    }, []); // Run once on component mount
 
 
-// A string representation for each object in loadedData
-const dataString =
-  loadedData && loadedData.length > 0
-    ? loadedData
-        .map((item) => {
-          const idString = item.id && item.id !== null ? `Id: ${item.id}\n` : '';
-          const nameString = `Name: ${item.name || ''}\n`;
-          const emailString = item.email && item.email !== null ? `Email: ${item.email}\n` : ''; 
-          return idString + nameString + emailString;
-        })
-        .join('\n------------------------------------------------------\n')
-    : '';
+    const handleQueryUser = async () => {
+        try {
+            const formData = new FormData();
+            formData.append('credentials', JSON.stringify(credentials));
+
+            if (validateEmail(currentQueryUserEmail)) {
+                console.log(currentQueryUserEmail)
+                console.log(typeof (currentQueryUserEmail))
+                formData.append('query_user_email', currentQueryUserEmail);
+                const response = await axios.post(`http://localhost:8000/integrations/${endpoint}/query`, formData);
+                const data = response.data;
+                // console.log(data);
+                setLoadedData(data);
+            } else {
+                setCurrentQueryUserEmail("Enter a valid email")
+            }
+        } catch (e) {
+            alert(e?.response?.data?.detail);
+        }
+    };
+
+
+
+    // A string representation for each object in loadedData
+    const dataString =
+        loadedData && loadedData.length > 0
+            ? loadedData
+                .map((item) => {
+                    const idString = item.id && item.id !== null ? `Id: ${item.id}\n` : '';
+                    const nameString = `Name: ${item.name || ''}\n`;
+                    const emailString = item.email && item.email !== null ? `Email: ${item.email}\n` : '';
+                    return idString + nameString + emailString;
+                })
+                .join('\n------------------------------------------------------\n')
+            : '';
 
     return (
         <Box display='flex' justifyContent='center' alignItems='center' flexDirection='column' width='100%'>
@@ -55,7 +90,7 @@ const dataString =
                     multiline
                     value={dataString || ''}
                     sx={{
-                        mt: 2, 
+                        mt: 2,
                         width: '50%'
                     }}
                     InputLabelProps={{ shrink: true }}
@@ -85,6 +120,33 @@ const dataString =
                 >
                     Clear Data
                 </Button>
+                {
+                    integrationType === 'HubSpot' && (
+                        <>
+                            <TextField
+                                label="Get User Details"
+                                value={currentQueryUserEmail}
+                                sx={{
+                                    mt: 2,
+                                    width: '20%'
+                                }}
+                                onChange={(e) => setCurrentQueryUserEmail(e.target.value)}
+                            />
+                            <Button
+                                onClick={handleQueryUser}
+                                sx={{
+                                    mt: 1,
+                                    width: '10%',
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}
+                                variant='contained'
+                            >
+                                Get Details
+                            </Button>
+                        </>
+                    )
+                }
             </Box>
         </Box>
     );

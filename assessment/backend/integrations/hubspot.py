@@ -137,6 +137,39 @@ async def fetch_items(
         print(f"Error: {response.status_code}, {response.text}")
 
 
+# TO-DO
+
+CONTACTS_TO_FETCH = ['anirbann@gmail.com','this.sanam@gmail.com']
+
+async def get_items_hubspot_query(credentials, query_user_email):
+
+    print(f'backend got the email : {query_user_email} and the type if {type(query_user_email)}')
+
+    list_of_integration_item_metadata_query = []
+    list_of_responses = []
+
+    credentials = json.loads(credentials)
+    url = 'https://api.hubapi.com/crm/v3/objects/contacts'
+    list_of_integration_item_metadata_query = []
+    list_of_responses = []
+
+    await fetch_items(credentials.get('access_token'), url, list_of_responses)
+
+
+    for response in list_of_responses:
+
+        if response['email'] == query_user_email:
+
+            list_of_integration_item_metadata_query.append(
+
+            # append only if response equals query_user_email
+            await create_integration_item_metadata_object(response)
+        )
+
+    print(f'list_of_integration_item_metadata: {list_of_integration_item_metadata_query}')
+    return list_of_integration_item_metadata_query
+
+
 async def get_items_hubspot(credentials):
     
     credentials = json.loads(credentials)
@@ -152,7 +185,7 @@ async def get_items_hubspot(credentials):
             await create_integration_item_metadata_object(response)
         )
 
-    print(f'list_of_integration_item_metadata: {list_of_integration_item_metadata}')
+    # print(f'list_of_integration_item_metadata: {list_of_integration_item_metadata}')
     return list_of_integration_item_metadata
 
 
