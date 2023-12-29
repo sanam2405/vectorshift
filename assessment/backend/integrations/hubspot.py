@@ -104,11 +104,23 @@ async def get_hubspot_credentials(user_id, org_id):
 
     return credentials
 
-async def create_integration_item_metadata_object(response_json: dict) -> IntegrationItem:
+async def create_integration_item_metadata_query_object(response_json: dict) -> IntegrationItem:
+    print(response_json)
     integration_item_metadata = IntegrationItem(
         id=response_json.get('id', None),
         name=response_json.get('firstname', None) + " " + response_json.get('lastname', None),
-        email=response_json.get('email', None)
+        email=response_json.get('email', None),
+        hs_object_id=response_json.get('hs_object_id', None),
+        create_date=response_json.get('createdate', None)
+    )
+
+    return integration_item_metadata
+
+async def create_integration_item_metadata_object(response_json: dict) -> IntegrationItem:
+    print(response_json)
+    integration_item_metadata = IntegrationItem(
+        name=response_json.get('firstname', None) + " " + response_json.get('lastname', None),
+        email=response_json.get('email', None),
     )
 
     return integration_item_metadata
@@ -137,13 +149,11 @@ async def fetch_items(
         print(f"Error: {response.status_code}, {response.text}")
 
 
+#######################################################################################################################
+    
 # TO-DO
 
-CONTACTS_TO_FETCH = ['anirbann@gmail.com','this.sanam@gmail.com']
-
 async def get_items_hubspot_query(credentials, query_user_email):
-
-    print(f'backend got the email : {query_user_email} and the type if {type(query_user_email)}')
 
     list_of_integration_item_metadata_query = []
     list_of_responses = []
@@ -155,21 +165,26 @@ async def get_items_hubspot_query(credentials, query_user_email):
 
     await fetch_items(credentials.get('access_token'), url, list_of_responses)
 
-
+    found = False
     for response in list_of_responses:
 
         if response['email'] == query_user_email:
-
+            found = True
             list_of_integration_item_metadata_query.append(
 
             # append only if response equals query_user_email
-            await create_integration_item_metadata_object(response)
+            await create_integration_item_metadata_query_object(response)
         )
 
-    print(f'list_of_integration_item_metadata: {list_of_integration_item_metadata_query}')
-    return list_of_integration_item_metadata_query
+    if found:
+        print(f'list_of_integration_item_metadata: {list_of_integration_item_metadata_query}')
+        return list_of_integration_item_metadata_query
+    else:
+        error_message = f'No user with the email {query_user_email} exists in our database'
+        raise HTTPException(status_code=404, detail=error_message)
 
-
+#######################################################################################################################
+    
 async def get_items_hubspot(credentials):
     
     credentials = json.loads(credentials)
@@ -185,7 +200,7 @@ async def get_items_hubspot(credentials):
             await create_integration_item_metadata_object(response)
         )
 
-    # print(f'list_of_integration_item_metadata: {list_of_integration_item_metadata}')
+    print(f'list_of_integration_item_metadata: {list_of_integration_item_metadata}')
     return list_of_integration_item_metadata
 
 

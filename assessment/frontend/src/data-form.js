@@ -52,8 +52,6 @@ export const DataForm = ({ integrationType, credentials }) => {
             formData.append('credentials', JSON.stringify(credentials));
 
             if (validateEmail(currentQueryUserEmail)) {
-                console.log(currentQueryUserEmail)
-                console.log(typeof (currentQueryUserEmail))
                 formData.append('query_user_email', currentQueryUserEmail);
                 const response = await axios.post(`http://localhost:8000/integrations/${endpoint}/query`, formData);
                 const data = response.data;
@@ -70,17 +68,21 @@ export const DataForm = ({ integrationType, credentials }) => {
 
 
     // A string representation for each object in loadedData
-    const dataString =
-        loadedData && loadedData.length > 0
-            ? loadedData
-                .map((item) => {
-                    const idString = item.id && item.id !== null ? `Id: ${item.id}\n` : '';
-                    const nameString = `Name: ${item.name || ''}\n`;
-                    const emailString = item.email && item.email !== null ? `Email: ${item.email}\n` : '';
-                    return idString + nameString + emailString;
-                })
-                .join('\n------------------------------------------------------\n')
-            : '';
+    let dataString;
+
+    try {
+        dataString = loadedData && loadedData.length > 0
+            ? loadedData.map((item) => {
+                const idString = item.id && item.id !== null ? `Id: ${item.id}\n` : '';
+                const nameString = `Name: ${item.name || ''}\n`;
+                const emailString = item.email && item.email !== null ? `Email: ${item.email}\n` : '';
+                const hsObjectId = item.hs_object_id && item.hs_object_id !== null ? `HubSpot Object ID: ${item.hs_object_id}\n` : ``;
+                const createdate = item.create_date && item.create_date !== null ? `Create Date: ${item.create_date}` : ``;
+                return hsObjectId + idString + nameString + emailString + createdate;
+            }).join('\n------------------------------------------------------\n'):'';
+    } catch (error) {
+        dataString = 'Oops! Some error occurred while fetching your data';
+    }
 
     return (
         <Box display='flex' justifyContent='center' alignItems='center' flexDirection='column' width='100%'>

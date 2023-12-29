@@ -19,6 +19,8 @@ class IntegrationItem:
         delta: Optional[str] = None,
         drive_id: Optional[str] = None,
         visibility: Optional[bool] = True,
+        hs_object_id: Optional[str] = None,
+        create_date: Optional[str] = None,
     ):
         self.id = id
         self.type = type
@@ -35,6 +37,8 @@ class IntegrationItem:
         self.delta = delta
         self.drive_id = drive_id
         self.visibility = visibility
+        self.hs_object_id = hs_object_id
+        self.create_date = create_date
 
     def __repr__(self):
         return (
@@ -53,6 +57,8 @@ class IntegrationItem:
             f"mime_type={self.mime_type}, "
             f"delta={self.delta}, "
             f"drive_id={self.drive_id}, "
-            f"visibility={self.visibility})"
+            f"visibility={self.visibility}), "
+            f"hs_object_id={self.hs_object_id})"
+            f"create_date={self.create_date})"
             f"\n------------------------------------------------------\n"
         )
